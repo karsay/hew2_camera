@@ -1,64 +1,84 @@
+# !pip install face_recognition
+
+"""ライブラリーのインポート"""
+
+# -*- coding: utf-8 -*-
+import face_recognition
+import cv2
+import time
+import json
+import urllib.parse
+import urllib.request
+
 from flask import Flask,jsonify, request
 from flask_cors import CORS
 
-import os
-import face_recognition
-import cv2
-import numpy as np
-import glob
-
-import config
-emp_info = config.emp_info
-threshold = config.threshold
-
-"""顔情報の初期化"""
-
-face_locations = []
-face_encodings = []
-
-"""登録画像の読み込み"""
-
-image_paths = glob.glob('images/*')
-image_paths.sort()
-known_face_encodings = []
-known_face_names = []
-checked_face = []
-
-for image_path in image_paths:
-    im_name = os.path.basename(image_path).split('.')[0]    # os.path.basename ファイル名の取得
-    image = face_recognition.load_image_file(image_path)
-    face_encoding = face_recognition.face_encodings(image)[0]
-    known_face_encodings.append(face_encoding)
-    known_face_names.append(im_name)
-
-app = Flask(__name__)
+app = Flask( __name__ )
 CORS(app)
 
 @app.route('/')
-def index():
-  return "hello"
+def photo_request():
+  video_capture = cv2.VideoCapture(0)
 
-@app.route('/authentication', methods=["POST"])
-def authentication():
-  _bytes = np.frombuffer(request.data, np.uint8)
-  # decode the bytes to image directly
-  img = cv2.imdecode(_bytes, flags=cv2.IMREAD_COLOR)
-  # ビデオの現在のフレーム内のすべての顔に対してその位置情報を検索
-  face_locations = face_recognition.face_locations(img)
-  # 顔の位置情報からエンコードを生成
-  face_encodings = face_recognition.face_encodings(img, face_locations)
+  cnt = 5
+  # 処理フラグ初期化
+  process_this_frame = True
 
-  for face_encoding in face_encodings:
-    # 顔が登録済みの顔と一致するか確認
-    matches = face_recognition.compare_faces(known_face_encodings, face_encoding, threshold)
-    name = "Unknown"
-    # カメラ画像と最も近い登録画像を見つける
-    face_distances = face_recognition.face_distance(known_face_encodings, face_encoding)
-    best_match_index = np.argmin(face_distances)
-    if matches[best_match_index]:
-      name = known_face_names[best_match_index]
+  while True:
+    # ビデオの単一フレームを取得
+    _, frame = video_capture.read()
 
-  return jsonify(name)
+    # 　フレーム毎に処理をスキップ
+    if process_this_frame:
+      # 画像を縦1/4　横1/4に圧縮
+      small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
+
+      # ビデオの現在のフレーム内のすべての顔に対してその位置情報を検索
+      face_locations = face_recognition.face_locations(small_frame)
+
+    # 　処理フラグの切り替え
+    process_this_frame = not process_this_frame
+
+    # 位置情報の表示
+    if face_locations:
+      time.sleep(1)
+      cv2.putText(frame, str(cnt), (200, 200), cv2.FONT_HERSHEY_SIMPLEX, 5, (0,255,0), 5, cv2.LINE_AA)
+      cnt -= 1
+
+      if (cnt < 0):
+        cv2.imwrite("data/face.jpg", frame)
+        break
+
+    # 結果をビデオに表示
+    cv2.imshow('Video', frame)
+
+    # ESCキーで終了
+    if cv2.waitKey(1) == 27:
+      break
+
+  # ウェブカメラへの操作を開放
+  video_capture.release()
+  cv2.destroyAllWindows()
+
+  # read image data
+  f = open("data/face.jpg", "rb")
+  reqbody = f.read()
+  f.close()
+
+  # create request with urllib
+  url = "http://localhost:5000/authentication"
+  req = urllib.request.Request(
+    url,
+    reqbody,
+    method="POST",
+    headers={"Content-Type": "application/octet-stream"},
+  )
+
+  # send the request and print response
+  with urllib.request.urlopen(req) as res:
+    # print(json.loads(res.read()))
+    return jsonify(json.loads(res.read()))
 
 if __name__ == '__main__':
-  app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
+

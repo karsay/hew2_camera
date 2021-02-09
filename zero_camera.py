@@ -10,10 +10,16 @@ import json
 import urllib.parse
 import urllib.request
 
-"""登録画像の読み込み"""
-video_capture = cv2.VideoCapture(0)
+from flask import Flask,jsonify, request
+from flask_cors import CORS
 
-def main():
+app = Flask( __name__ )
+CORS(app)
+
+@app.route('/')
+def photo_request():
+  video_capture = cv2.VideoCapture(0)
+
   cnt = 5
   # 処理フラグ初期化
   process_this_frame = True
@@ -36,13 +42,6 @@ def main():
     # 位置情報の表示
     if face_locations:
       time.sleep(1)
-      # top = face_locations[0][0] * 4
-      # right = face_locations[0][1] * 4
-      # bottom = face_locations[0][2] * 4
-      # left = face_locations[0][3] * 4
-      # # 顔領域に枠を描画
-      # face = frame[top - 200:bottom + 50, left - 100:right + 100]
-      # if(face.all):
       cv2.putText(frame, str(cnt), (200, 200), cv2.FONT_HERSHEY_SIMPLEX, 5, (0,255,0), 5, cv2.LINE_AA)
       cnt -= 1
 
@@ -56,6 +55,10 @@ def main():
     # ESCキーで終了
     if cv2.waitKey(1) == 27:
       break
+
+  # ウェブカメラへの操作を開放
+  video_capture.release()
+  cv2.destroyAllWindows()
 
   # read image data
   f = open("data/face.jpg", "rb")
@@ -75,8 +78,6 @@ def main():
   with urllib.request.urlopen(req) as res:
     print(json.loads(res.read()))
 
-main()
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True)
 
-# ウェブカメラへの操作を開放
-video_capture.release()
-cv2.destroyAllWindows()
