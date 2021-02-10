@@ -16,11 +16,13 @@ from flask_cors import CORS
 app = Flask( __name__ )
 CORS(app)
 
-@app.route('/')
+@app.route('/', methods=['post'])
 def photo_request():
+  requestFlag = request.form.get('requestFlag')
+
   video_capture = cv2.VideoCapture(0)
 
-  cnt = 5
+  cnt = 3
   # 処理フラグ初期化
   process_this_frame = True
 
@@ -60,25 +62,24 @@ def photo_request():
   video_capture.release()
   cv2.destroyAllWindows()
 
-  # read image data
+  # 画像を保存
   f = open("data/face.jpg", "rb")
   reqbody = f.read()
   f.close()
 
-  # create request with urllib
-  url = "http://localhost:5000/authentication"
-  req = urllib.request.Request(
-    url,
-    reqbody,
-    method="POST",
-    headers={"Content-Type": "application/octet-stream"},
-  )
+  # リクエストフラグで登録、認証分岐
+  if requestFlag == "auth":
+    url = "http://localhost:5000/authentication"
+    req = urllib.request.Request(
+      url,
+      reqbody,
+      method="POST",
+      headers={"Content-Type": "application/octet-stream"},
+    )
 
-  # send the request and print response
   with urllib.request.urlopen(req) as res:
-    # print(json.loads(res.read()))
     return jsonify(json.loads(res.read()))
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=False)
 
