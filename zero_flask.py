@@ -42,7 +42,6 @@ def photo_request():
     # 位置情報の表示
     if face_locations:
       time.sleep(1)
-      #cv2.putText(frame, str(cnt), (200, 200), cv2.FONT_HERSHEY_SIMPLEX, 5, (0,255,0), 5, cv2.LINE_AA)
       cnt -= 1
 
       if (cnt < 0):
