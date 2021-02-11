@@ -20,8 +20,6 @@ CORS(app)
 def photo_request():
    
   video_capture = cv2.VideoCapture(0)
-  user_id = request.json["userId"]
-
   cnt = 3
   # 処理フラグ初期化
   process_this_frame = True
@@ -44,11 +42,11 @@ def photo_request():
     # 位置情報の表示
     if face_locations:
       time.sleep(1)
-      cv2.putText(frame, str(cnt), (200, 200), cv2.FONT_HERSHEY_SIMPLEX, 5, (0,255,0), 5, cv2.LINE_AA)
+      #cv2.putText(frame, str(cnt), (200, 200), cv2.FONT_HERSHEY_SIMPLEX, 5, (0,255,0), 5, cv2.LINE_AA)
       cnt -= 1
 
       if (cnt < 0):
-        cv2.imwrite("data/{}.jpg".format(user_id), frame)
+        cv2.imwrite("data/tmp.jpg", frame)
         break
 
     # 結果をビデオに表示
@@ -63,7 +61,7 @@ def photo_request():
   cv2.destroyAllWindows()
 
   # 画像を保存
-  f = open("data/face.jpg", "rb")
+  f = open("data/tmp.jpg", "rb")
   reqbody = f.read()
   f.close()
 
