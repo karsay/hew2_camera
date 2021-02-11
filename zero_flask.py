@@ -2,13 +2,14 @@
 
 """ライブラリーのインポート"""
 
-# -*- coding: utf-8 -*-
+# coding: utf-8
 import face_recognition
 import cv2
 import time
 import json
 import urllib.parse
 import urllib.request
+import base64
 
 from flask import Flask,jsonify, request
 from flask_cors import CORS
@@ -22,7 +23,7 @@ CORS(app)
 def photo_request():
    
   video_capture = cv2.VideoCapture(0)
-  cnt = 3
+  cnt = 5
   # 処理フラグ初期化
   process_this_frame = True
 
@@ -81,7 +82,7 @@ def photo_request():
 
 @app.route('/fingerprint',methods=['post'])
 def finger_print():
-  fingerPrint = fp.FingerPrint('/dev/ttyAMA1', 57600, 1.0, 27)
+  fingerPrint = fp.FingerPrint('/dev/ttyS0', 57600, 1.0, 27)
   listfinger = b''
 
   #print("1:登録　2:認証")
@@ -90,35 +91,24 @@ def finger_print():
     fingerPrint.enroll()
     fingerPrint.regModel()
     listfinger = fingerPrint.upImage1()
-    return jsonify(listfinger)
+    b64_finger = base64.b64encode(listfinger).decode('utf-8')
+    return jsonify(b64_finger)
 
-  # elif int(selectNum) == 2:
-  #   print("IDを入力")
-  #   idname = input()
-  #   i = 0
-  #   while i < 6:
-  #     if idname == listname[i]:
-  #       break
-  #     i = i + 1
-  #
-  #   if idname == listname[i]:
-  #
-  #     fingerPrint.loginFinger()
-  #     fingerPrint.downLoadImage2(listfinger)
-  #     result = fingerPrint.match()
-  #     if result == 1:
-  #       print(listname[i] + "さんの指紋と一致しました")
-  #     elif result == 2:
-  #       print(listname[i] + "さんの指紋と一致しませんでした")
-  #     elif result == 100:
-  #       print("認証失敗。もう一度お願い")
-  #     else:
-  #       print("エラー")
-  #   else:
-  #     print("IDが違います")
-  # else:
-  #   print("数値を入力")
-
+  elif int(selectNum) == 2:
+    idname = request.json["userId"]
+    listfinger = base64.b64decode(request.json["fingerPass"].encode())
+    fingerPrint.loginFinger()
+    fingerPrint.downLoadImage2(listfinger)
+    result = fingerPrint.match()
+    if result == 1:
+      return jsonify("true")
+    elif result == 2:
+      return jsonify("false")
+    elif result == 100:
+      print("認証失敗。もう一度お願い")
+    else:
+      return jsonify("false")
+       
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)
 
