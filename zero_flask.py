@@ -20,6 +20,7 @@ CORS(app)
 def photo_request():
    
   video_capture = cv2.VideoCapture(0)
+  user_id = request.json["userId"]
 
   cnt = 3
   # 処理フラグ初期化
@@ -47,7 +48,7 @@ def photo_request():
       cnt -= 1
 
       if (cnt < 0):
-        cv2.imwrite("data/face.jpg", frame)
+        cv2.imwrite("data/{}.jpg".format(user_id), frame)
         break
 
     # 結果をビデオに表示
@@ -68,6 +69,7 @@ def photo_request():
 
   # リクエストフラグで登録、認証分岐
   url = "http://192.168.0.14:5000/{}".format(request.json["reqFlag"])
+
   req = urllib.request.Request(
     url,
     reqbody,

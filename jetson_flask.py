@@ -38,6 +38,15 @@ CORS(app)
 def index():
   return "hello"
 
+
+@app.route('/registration', methods=["POST"])
+def registration():
+  _bytes = np.frombuffer(request.data, np.uint8)
+  # decode the bytes to image directly
+  img = cv2.imdecode(_bytes, flags=cv2.IMREAD_COLOR)
+  cv2.imwrite("images/{}.jpg".format(), img)
+
+
 @app.route('/authentication', methods=["POST"])
 def authentication():
   _bytes = np.frombuffer(request.data, np.uint8)
