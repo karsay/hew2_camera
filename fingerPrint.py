@@ -3,7 +3,7 @@ import binascii
 import time
 import sys
 import RPi.GPIO as GPIO
-
+import json
 
 class FingerPrint:
 
@@ -13,6 +13,10 @@ class FingerPrint:
         GPIO.setwarnings(False) 
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(pin, GPIO.IN)
+        self.PORT_RED = 24
+        self.PORT_BLUE = 23
+        GPIO.setup(23, GPIO.OUT)
+        GPIO.setup(24, GPIO.OUT)
 
     def getImage(self):
         self.ser.write(b"\xEF\x01\xFF\xFF\xFF\xFF\x01\x00\x03\x01\x00\x05")
@@ -66,6 +70,9 @@ class FingerPrint:
                             dataresult = data
                     if dataresult == b'\x00':
                         print("1/5成功")
+                        GPIO.output(self.PORT_BLUE, GPIO.HIGH)
+                        time.sleep(0.4)
+                        GPIO.output(self.PORT_BLUE, GPIO.LOW)
                         ts = GPIO.input(self.pin)
                         print("指を離してください")
                         while ts == 1:
@@ -75,8 +82,14 @@ class FingerPrint:
                         break
                     else:
                         print("やり直し")
+                        GPIO.output(self.PORT_RED, GPIO.HIGH)
+                        time.sleep(0.4)
+                        GPIO.output(self.PORT_RED, GPIO.LOW)
                 else:
                     print("やり直し")
+                    GPIO.output(self.PORT_RED, GPIO.HIGH)
+                    time.sleep(0.4)
+                    GPIO.output(self.PORT_RED, GPIO.LOW)
             else:
                 print("指を乗せてください")
             time.sleep(1)
@@ -102,6 +115,9 @@ class FingerPrint:
                             dataresult = data
                     if dataresult == b'\x00':
                         print("2/5成功")
+                        GPIO.output(self.PORT_BLUE, GPIO.HIGH)
+                        time.sleep(0.4)
+                        GPIO.output(self.PORT_BLUE, GPIO.LOW)
                         ts = GPIO.input(self.pin)
                         print("指を離してください")
                         while ts == 1:
@@ -111,8 +127,14 @@ class FingerPrint:
                         break
                     else:
                         print("やり直し")
+                        GPIO.output(self.PORT_RED, GPIO.HIGH)
+                        time.sleep(0.4)
+                        GPIO.output(self.PORT_RED, GPIO.LOW)
                 else:
                     print("やり直し")
+                    GPIO.output(self.PORT_RED, GPIO.HIGH)
+                    time.sleep(0.4)
+                    GPIO.output(self.PORT_RED, GPIO.LOW)
             else:
                 print("指を乗せてください")
             time.sleep(1)
@@ -139,6 +161,9 @@ class FingerPrint:
                             dataresult = data
                     if dataresult == b'\x00':
                         print("3/5成功")
+                        GPIO.output(self.PORT_BLUE, GPIO.HIGH)
+                        time.sleep(0.4)
+                        GPIO.output(self.PORT_BLUE, GPIO.LOW)
                         ts = GPIO.input(self.pin)
                         print("指を離してください")
                         while ts == 1:
@@ -148,8 +173,14 @@ class FingerPrint:
                         break
                     else:
                         print("やり直し")
+                        GPIO.output(self.PORT_RED, GPIO.HIGH)
+                        time.sleep(0.4)
+                        GPIO.output(self.PORT_RED, GPIO.LOW)
                 else:
                     print("やり直し")
+                    GPIO.output(self.PORT_RED, GPIO.HIGH)
+                    time.sleep(0.4)
+                    GPIO.output(self.PORT_RED, GPIO.LOW)
             else:
                 print("指を乗せてください")
             time.sleep(1)
@@ -174,6 +205,9 @@ class FingerPrint:
                             dataresult = data
                     if dataresult == b'\x00':
                         print("4/5成功")
+                        GPIO.output(self.PORT_BLUE, GPIO.HIGH)
+                        time.sleep(0.4)
+                        GPIO.output(self.PORT_BLUE, GPIO.LOW)
                         ts = GPIO.input(self.pin)
                         print("指を離してください")
                         while ts == 1:
@@ -183,8 +217,14 @@ class FingerPrint:
                         break
                     else:
                         print("やり直し")
+                        GPIO.output(self.PORT_RED, GPIO.HIGH)
+                        time.sleep(0.4)
+                        GPIO.output(self.PORT_RED, GPIO.LOW)
                 else:
                     print("やり直し")
+                    GPIO.output(self.PORT_RED, GPIO.HIGH)
+                    time.sleep(0.4)
+                    GPIO.output(self.PORT_RED, GPIO.LOW)
             else:
                 print("指を乗せてください")
             time.sleep(1)
@@ -209,17 +249,36 @@ class FingerPrint:
                             dataresult = data
                     if dataresult == b'\x00':
                         print("5/5成功")
+                        GPIO.output(self.PORT_BLUE, GPIO.HIGH)
+                        time.sleep(0.3)
+                        GPIO.output(self.PORT_BLUE, GPIO.LOW)
+                        time.sleep(0.1)
+                        GPIO.output(self.PORT_BLUE, GPIO.HIGH)
+                        time.sleep(0.3)
+                        GPIO.output(self.PORT_BLUE, GPIO.LOW)
+                        time.sleep(0.1)
+                        GPIO.output(self.PORT_BLUE, GPIO.HIGH)
+                        time.sleep(0.3)
+                        GPIO.output(self.PORT_BLUE, GPIO.LOW)
                         ts = GPIO.input(27)
                         print("指を離してください")
                         while ts == 1:
                             time.sleep(1)
                             ts = GPIO.input(27)
                         ts = GPIO.input(27)
+                        GPIO.cleanup()
                         break
                     else:
                         print("やり直し")
+                        GPIO.output(self.PORT_RED, GPIO.HIGH)
+                        time.sleep(0.4)
+                        GPIO.output(self.PORT_RED, GPIO.LOW)
                 else:
                     print("やり直し")
+                    GPIO.output(self.PORT_RED, GPIO.HIGH)
+                    time.sleep(0.4)
+                    GPIO.output(self.PORT_RED, GPIO.LOW)
+                    
             else:
                 print("指を乗せてください")
             time.sleep(1)
@@ -259,6 +318,7 @@ class FingerPrint:
 
         for i in range(14):  
             data = self.ser.read()
+            print(data)
             if i == 9:
                 if data == b'\x00':
                     resultNum = 1
@@ -370,8 +430,10 @@ class FingerPrint:
                         if i == 9:
                             dataresult = data
                     if dataresult == b'\x00':
-
                         print("指紋読み取り完了")
+                        GPIO.output(self.PORT_BLUE, GPIO.HIGH)
+                        time.sleep(0.4)
+                        GPIO.output(self.PORT_BLUE, GPIO.LOW)
                         ts = GPIO.input(self.pin)
                         j = 0
                         i = 0
@@ -380,11 +442,18 @@ class FingerPrint:
                             time.sleep(1)
                             ts = GPIO.input(self.pin)
                         ts = GPIO.input(self.pin)
+                        GPIO.cleanup()
                         break
                     else:
                         print("やり直し")
+                        GPIO.output(self.PORT_RED, GPIO.HIGH)
+                        time.sleep(0.4)
+                        GPIO.output(self.PORT_RED, GPIO.LOW)
                 else:
                     print("やり直し")
+                    GPIO.output(self.PORT_RED, GPIO.HIGH)
+                    time.sleep(0.4)
+                    GPIO.output(self.PORT_RED, GPIO.LOW)
             else:
                 print("指を乗せてください")
             time.sleep(1)
