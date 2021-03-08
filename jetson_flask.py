@@ -7,11 +7,18 @@ import cv2
 import numpy as np
 import glob
 
+import requests
+import base64
+import hashlib
+
+
 import time
 
 import config
 user_info = config.user_info
 threshold = config.threshold
+
+import images
 
 """顔情報の初期化"""
 
@@ -29,9 +36,35 @@ checked_face = []
 app = Flask(__name__)
 CORS(app)
 
+app.register_blueprint(images.app)
+
 @app.route('/')
 def index():
   return "hello"
+
+@app.route('/create_icon', methods=["POST"])
+def create_icon():
+  data = open('tests/00.jpg', 'rb')
+
+  r = requests.post(
+    "https://api.deepai.org/api/CNNMRF",
+    data={
+      'content': base64.b64encode(data.read()),
+      'style': 'https://video-images.vice.com/_uncategorized/1554346499928-02.jpeg',
+    },
+    headers={'api-key': 'ca6dafe3-27ec-4ed0-9c87-b11380bb396c'}
+  )
+
+  response = requests.get(r.json()['output_url'])
+  image = response.content
+
+  file_name = "icons/" + hashlib.md5(image).hexdigest() + ".jpg"
+
+  with open(file_name, "wb") as aaa:
+    aaa.write(image)
+
+  data = open(file_name, 'rb')
+  return base64.encode(data.read())
 
 @app.route('/authenticationregistration', methods=["POST"])
 def authentication_registration():
@@ -107,4 +140,4 @@ def authentication():
   return jsonify(name, password)
 
 if __name__ == '__main__':
-  app.run(host='0.0.0.0', port=5000, debug=True)
+  app.run(host='0.0.0.0', port=5000, debug=False)
