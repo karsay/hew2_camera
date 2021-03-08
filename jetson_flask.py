@@ -20,6 +20,8 @@ threshold = config.threshold
 
 import images
 
+import random
+
 """顔情報の初期化"""
 
 face_locations = []
@@ -46,11 +48,19 @@ def index():
 def create_icon():
   data = open('tests/00.jpg', 'rb')
 
+  styles = ['https://video-images.vice.com/_uncategorized/1554346499928-02.jpeg',
+            'https://casie.jp/media/wp-content/uploads/2020/09/Van_Gogh_Self-Portrait_with_Straw_Hat_1887-Detroit.jpg',
+            'https://auctions.c.yimg.jp/images.auctions.yahoo.co.jp/image/dr000/auc0105/users/ff8558e1fe2b4810b6f62ca52a22e93fb5949a71/i-img900x1200-1590300556xwpbcw11877.jpg',
+            'https://www.artbank.co.jp/stockillust/vol8_image/visualgenerallaboratory/1-S-CHD107.jpg',
+            'https://images-na.ssl-images-amazon.com/images/I/619cmE%2B4EUL._AC_.jpg',
+            'https://pbs.twimg.com/profile_images/1065419302256275456/y1oe1dOQ.jpg'
+            ]
+
   r = requests.post(
     "https://api.deepai.org/api/CNNMRF",
     data={
       'content': base64.b64encode(data.read()),
-      'style': 'https://video-images.vice.com/_uncategorized/1554346499928-02.jpeg',
+      'style': random.choice(styles),
     },
     headers={'api-key': 'ca6dafe3-27ec-4ed0-9c87-b11380bb396c'}
   )
@@ -62,9 +72,6 @@ def create_icon():
 
   with open(file_name, "wb") as aaa:
     aaa.write(image)
-
-  data = open(file_name, 'rb')
-  return base64.encode(data.read())
 
 @app.route('/authenticationregistration', methods=["POST"])
 def authentication_registration():
